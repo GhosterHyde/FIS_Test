@@ -1,0 +1,14 @@
+SELECT Студент.ФИО FROM Студент WHERE Студент.ФИО IN (
+	SELECT Студент.ФИО
+	FROM Студент
+	JOIN Выдача_книги
+	ON Выдача_книги.ID_студента = Студент.ID
+	GROUP BY Студент.ФИО
+	HAVING COUNT(*) = (
+		SELECT MAX(Количество_заказов) FROM (
+			SELECT COUNT(*) as Количество_заказов
+			FROM Выдача_книги
+			GROUP BY Выдача_книги.ID_студента
+		) AS TEMP
+	)
+)

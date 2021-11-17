@@ -1,0 +1,21 @@
+DECLARE @YearForAuthor int;
+SELECT @YearForAuthor = 2020;
+
+SELECT Автор.ФИО FROM Автор WHERE Автор.ФИО IN (
+	SELECT Автор.ФИО
+	FROM Автор
+	JOIN Написание_книги
+	ON Написание_книги.ID_автора = Автор.ID
+	JOIN Книга
+	ON Книга.ID = Написание_книги.ID_книги
+	JOIN Выдача_книги
+	ON Выдача_книги.ID_книги = Книга.ID AND YEAR(Выдача_книги.Дата_выдачи) = @YearForAuthor
+	GROUP BY Автор.ФИО
+	HAVING COUNT(*) = (
+		SELECT MAX(Количество_заказов) FROM (
+			SELECT COUNT(*) as Количество_заказов
+			FROM Выдача_книги
+			GROUP BY Выдача_книги.ID_книги
+		) AS TEMP
+	)
+)

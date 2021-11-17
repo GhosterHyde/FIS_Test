@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        function hardcore_readers(){
+            const sql = require('mssql')
+            const query=`SELECT Студент.ФИО FROM Студент WHERE Студент.ФИО IN (
+                        SELECT Студент.ФИО
+                        FROM Студент
+                        JOIN Выдача_книги
+                        ON Выдача_книги.ID_студента = Студент.ID
+                        GROUP BY Студент.ФИО
+                        HAVING COUNT(*) = (
+                            SELECT MAX(Количество_заказов) FROM (
+                                SELECT COUNT(*) as Количество_заказов
+                                FROM Выдача_книги
+                                GROUP BY Выдача_книги.ID_студента
+                            ) AS TEMP
+                        )
+                    )`;
+            config = {
+                database: "dbname",
+                options: {
+                    enableArithAbort: true,
+                    encrypt: true,
+                    rowCollectionOnRequestCompletion: false,
+                },
+                parseJSON: true,
+                password: "password",
+                port: port,
+                server: "server ip or name",
+                user: "usenme",
+            };
+
+    
+            sql.on('error', err => {
+                console.log(err);
+            })
+
+            sql.connect(config).then(pool => {
+                var response = pool.request().query(query);
+                var mainDiv = document.getElementById('mainContent');
+                response.forEach(element => {
+                    var reader = document.createElement('h1');
+                    reader.innerHTML = response;
+                    mainDiv.appendChild(reader);
+                });
+            }).then(result => {
+                console.log(result.recordset)
+            }).catch(err => {
+                console.log(err)
+            });
+        }
+
+    </script>
+</head>
+<body>
+    <div id="mainContent" onload="hardcore_readers()"></div>
+</body>
+</html>
